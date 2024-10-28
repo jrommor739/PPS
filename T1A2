@@ -279,6 +279,7 @@ con extensión sh) creados en la carpeta pasada como parámetro, deben ser
 empaquetados con el comando tar y el nombre del archivo debe tener el siguiente
 formato: “copia_scripts_ddmmaaaa.tar” siendo dd el día, mm el mes y aaaa el año en el
 que se produce la copia.
+
 #!/bin/bash
 
 # Verifica que se ha pasado un directorio como argumento
