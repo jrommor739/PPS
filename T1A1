@@ -1,0 +1,103 @@
+1. Crea un script que muestre en pantalla el nombre de dicho script.
+
+#!/bin/bash
+# Mostrar el nombre del script
+echo "El nombre del script es: $0"
+
+2. Crea un script que muestre en pantalla el contenido de un archivo a partir del segundo parámetro recibido. El segundo parámetro recibido debería ser la ruta (relativa o absoluta) a un archivo existente. Finalmente muestra el exit code del comando usado para visualizar el archivo. Cuando hayas realizado el script, y comprobado que funciona correctamente, realiza la siguiente prueba: Pasa como 2º parámetro la ruta a un archivo sobre el que no tengas permiso de lectura.
+
+#!/bin/bash
+# Verificar que se ha pasado un segundo parámetro
+if [ $# -lt 2 ]; then
+    echo "Uso: $0 <otro_parametro> <ruta_archivo>"
+    exit 1
+fi
+
+# Mostrar el contenido del archivo
+cat "$2"
+# Guardar el código de salida del comando
+exit_code=$?
+echo "El código de salida del comando cat es: $exit_code"
+exit $exit_code
+
+3. Crea un script que cree un directorio y después copie dentro de él un fichero. Las rutas deldirectorio y fichero a copiar se pasarán como parámetros. Por lo tanto, recibirá 2 parámetros:
+  A. Primer parámetro: La ruta del directorio a crear, incluyendo su nombre.
+  B. Segundo parámetro: La ruta de un archivo existente.
+
+#!/bin/bash
+# Verificar que se han pasado dos parámetros
+if [ $# -ne 2 ]; then
+    echo "Uso: $0 <ruta_directorio> <ruta_archivo>"
+    exit 1
+fi
+
+# Crear el directorio
+mkdir -p "$1"
+# Copiar el archivo
+cp "$2" "$1/"
+
+4. Crea un script que realice las siguientes tareas:
+  A. Si el script no ha recibido ningún parámetro, que muestre el mensaje “No has introducido ningún parámetro” y termine el script.
+  B. Si ha recibido algún parámetro:
+    ▪ Que diga cuantos parámetros ha recibido.
+    ▪ Que muestre los parámetros recibidos.
+
+#!/bin/bash
+# Comprobar si no se han pasado parámetros
+if [ $# -eq 0 ]; then
+    echo "No has introducido ningún parámetro"
+    exit 1
+else
+    echo "Número de parámetros recibidos: $#"
+    echo "Parámetros recibidos: $@"
+fi
+exit 0
+
+5. Modifica el script anterior, de manera que el script retorne un 1 en el caso A (después de mostrar el mensaje), y devuelva un 0 en el caso B (después de haber mostrado la información sobre los parámetros). Cuando pruebes este script ejecutándolo desde la terminal, tras ejecutarlo verifica su exit code.
+
+#!/bin/bash
+# Comprobar si no se han pasado parámetros
+if [ $# -eq 0 ]; then
+    echo "No has introducido ningún parámetro"
+    exit 1
+else
+    echo "Número de parámetros recibidos: $#"
+    echo "Parámetros recibidos: $@"
+fi
+exit 0
+
+6. Repite el ejercicio 3, pero verificando que se le han pasado al menos 2 parámetros, e informando adecuadamente si no recibe los parámetros esperados.
+
+#!/bin/bash
+# Verificar que se han pasado al menos dos parámetros
+if [ $# -lt 2 ]; then
+    echo "Se requieren al menos 2 parámetros: <ruta_directorio> <ruta_archivo>"
+    exit 1
+fi
+
+# Crear el directorio
+mkdir -p "$1"
+# Copiar el archivo
+cp "$2" "$1/"
+
+7. Crea un script que reciba como parámetro la ruta a un archivo o directorio y, si existe, que nos indique si es un archivo o un directorio.
+
+#!/bin/bash
+# Verificar si se ha pasado un parámetro
+if [ $# -eq 0 ]; then
+    echo "Uso: $0 <ruta_archivo_o_directorio>"
+    exit 1
+fi
+
+# Verificar si existe y si es un archivo o directorio
+if [ -e "$1" ]; then
+    if [ -f "$1" ]; then
+        echo "$1 es un archivo."
+    elif [ -d "$1" ]; then
+        echo "$1 es un directorio."
+    else
+        echo "$1 es un tipo de archivo no reconocido."
+    fi
+else
+    echo "$1 no existe."
+fi
