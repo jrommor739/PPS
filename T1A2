@@ -1,0 +1,312 @@
+Ejercicio 1.
+Haz un script llamado multiplo10.sh que pida un número por teclado e indique si es un
+múltiplo de 10 o no.
+
+#!/bin/bash
+
+# Solicita un número al usuario
+echo "Introduce un número:"
+read numero
+
+# Verifica si es un número
+if ! [[ "$numero" =~ ^-?[0-9]+$ ]]; then
+    echo "Por favor, introduce un número válido."
+    exit 1
+fi
+
+# Comprueba si es múltiplo de 10
+if (( numero % 10 == 0 )); then
+    echo "$numero es un múltiplo de 10."
+else
+    echo "$numero no es un múltiplo de 10."
+fi
+
+Ejercicio 2.
+Haz un script llamado altura_mayor.sh, que pida por teclado la altura en centímetros
+de tres personas y nos diga la más alta de las tres en metros.
+
+#!/bin/bash
+
+# Pide la altura de tres personas en centímetros
+echo "Introduce la altura de la primera persona en cm:"
+read altura1
+echo "Introduce la altura de la segunda persona en cm:"
+read altura2
+echo "Introduce la altura de la tercera persona en cm:"
+read altura3
+
+# Verifica que las entradas sean números
+for altura in $altura1 $altura2 $altura3; do
+    if ! [[ "$altura" =~ ^[0-9]+$ ]]; then
+        echo "Por favor, introduce una altura válida en centímetros."
+        exit 1
+    fi
+done
+
+# Encuentra la mayor altura
+mayor_altura=$altura1
+if [ "$altura2" -gt "$mayor_altura" ]; then
+    mayor_altura=$altura2
+fi
+if [ "$altura3" -gt "$mayor_altura" ]; then
+    mayor_altura=$altura3
+fi
+
+# Convierte a metros y muestra el resultado
+mayor_altura_metros=$(echo "scale=2; $mayor_altura / 100" | bc)
+echo "La altura más alta es $mayor_altura_metros metros."
+
+Ejercicio 3.
+Haz un script llamado cuenta10ficheros.sh, que nos diga si en el directorio pasado
+como parámetro hay más de 10 ficheros o no, es decir, los directorios no deben ser
+contados.
+
+#!/bin/bash
+
+# Verifica que se ha pasado un directorio como argumento
+if [ "$#" -ne 1 ]; then
+    echo "Uso: $0 <directorio>"
+    exit 1
+fi
+
+directorio=$1
+
+# Verifica si el argumento es un directorio
+if [ ! -d "$directorio" ]; then
+    echo "$directorio no es un directorio válido."
+    exit 1
+fi
+
+# Cuenta los archivos en el directorio
+num_ficheros=$(find "$directorio" -maxdepth 1 -type f | wc -l)
+
+# Verifica si hay más de 10 ficheros
+if [ "$num_ficheros" -gt 10 ]; then
+    echo "Hay más de 10 ficheros en $directorio."
+else
+    echo "No hay más de 10 ficheros en $directorio."
+fi
+
+Ejercicio 4.
+Haz un script llamado decada_edad.sh que, dada una edad introducida por teclado,
+nos devuelva como resultado la década en la que nacimos (ejemplo 1970, 1980, etc.).
+Suponemos que la edad introducida está entre 15 y 60 años. El script debe coger el año
+actual de forma automática.
+La salida debe producirse en el siguiente formato: “Si naciste en 1983, naciste en la
+década de 1980”.
+
+#!/bin/bash
+
+# Pide la edad al usuario
+echo "Introduce tu edad (entre 15 y 60 años):"
+read edad
+
+# Verifica que la edad sea válida
+if ! [[ "$edad" =~ ^[0-9]+$ ]] || [ "$edad" -lt 15 ] || [ "$edad" -gt 60 ]; then
+    echo "Por favor, introduce una edad válida entre 15 y 60."
+    exit 1
+fi
+
+# Obtiene el año actual
+anio_actual=$(date +"%Y")
+
+# Calcula el año de nacimiento
+anio_nacimiento=$((anio_actual - edad))
+
+# Calcula la década
+decada=$((anio_nacimiento / 10 * 10))
+
+# Muestra el resultado
+echo "Si naciste en $anio_nacimiento, naciste en la década de $decada."
+
+Ejercicio 5.
+Haz un script llamado diadelmes.sh que nos diga cuántos días tiene el mes actual en
+el momento de su ejecución (se considera que febrero tiene 28 días). La salida debe
+producirse en el siguiente formato: “Estamos en noviembre, un mes con 30 días”.
+
+#!/bin/bash
+
+# Obtiene el mes actual
+mes_actual=$(date +"%m")
+
+# Determina cuántos días tiene el mes actual
+case $mes_actual in
+    01|03|05|07|08|10|12)
+        dias=31
+        mes_nombre=$(date +"%B")
+        ;;
+    04|06|09|11)
+        dias=30
+        mes_nombre=$(date +"%B")
+        ;;
+    02)
+        dias=28
+        mes_nombre=$(date +"%B")
+        ;;
+esac
+
+# Muestra el resultado
+echo "Estamos en $mes_nombre, un mes con $dias días."
+
+Ejercicio 6.
+Haz un script llamado horoscopochino.sh, que pida el año en que nacimos (4 cifras) y
+nos diga por pantalla qué animal nos corresponde según el horóscopo chino. Para
+calcularlo debemos dividir el año entre 12 y el resto nos indicará el animal según la
+siguiente tabla:
+8 El mono 0 La rata 4 El dragón
+9 El gallo 1 El buey 5 La serpiente
+10 El perro 2 El tigre 6 El caballo
+11 El cerdo 3 El conejo 7 La cabra
+
+#!/bin/bash
+
+# Pide el año de nacimiento al usuario
+echo "Introduce el año en que naciste (4 cifras):"
+read anio
+
+# Verifica que el año sea válido
+if ! [[ "$anio" =~ ^[0-9]{4}$ ]]; then
+    echo "Por favor, introduce un año válido."
+    exit 1
+fi
+
+# Calcula el signo del horóscopo chino
+resto=$((anio % 12))
+
+# Asigna el animal correspondiente
+case $resto in
+    0) animal="La rata" ;;
+    1) animal="El buey" ;;
+    2) animal="El tigre" ;;
+    3) animal="El conejo" ;;
+    4) animal="El dragón" ;;
+    5) animal="La serpiente" ;;
+    6) animal="El caballo" ;;
+    7) animal="La cabra" ;;
+    8) animal="El mono" ;;
+    9) animal="El gallo" ;;
+    10) animal="El perro" ;;
+    11) animal="El cerdo" ;;
+esac
+
+# Muestra el resultado
+echo "Tu animal del horóscopo chino es: $animal."
+
+Ejercicio 7.
+Haz un script llamado sumarango.sh, que pida dos números por teclado y calcule la
+suma de los números que conforman ese rango. Por ejemplo: Si introducimos el 5 y el
+8 debemos mostrar el 26 por pantalla que es el resultado de sumar 5+6+7+8.
+El programa comprobará qué número es menor antes de calcular la suma del rango
+para poder invertir el orden en caso necesario.
+
+#!/bin/bash
+
+# Pide dos números al usuario
+echo "Introduce el primer número:"
+read num1
+echo "Introduce el segundo número:"
+read num2
+
+# Verifica que las entradas sean números
+if ! [[ "$num1" =~ ^-?[0-9]+$ ]] || ! [[ "$num2" =~ ^-?[0-9]+$ ]]; then
+    echo "Por favor, introduce números válidos."
+    exit 1
+fi
+
+# Asegura que num1 sea menor o igual que num2
+if [ "$num1" -gt "$num2" ]; then
+    temp=$num1
+    num1=$num2
+    num2=$temp
+fi
+
+# Calcula la suma de los números en el rango
+suma=0
+for (( i=num1; i<=num2; i++ )); do
+    suma=$((suma + i))
+done
+
+# Muestra el resultado
+echo "La suma de los números del rango $num1 a $num2 es: $suma."
+
+Ejercicio 8.
+Realizar un script llamado usuarios.sh que muestre la siguiente información de un
+usuario del sistema pasado por parámetro: nombre de usuario, UID, GID y directorio de
+trabajo.
+Cuando se muestre la información el script debe preguntar si quiere introducir otro
+usuario para mostrar su información o si se quiere salir del programa.
+Se debe verificar que ese usuario está dado de alta en el sistema y por supuesto deberá
+mostrarse por pantalla el mensaje oportuno de darse tal circunstancia. Los errores
+arrojados por los comandos empleados serán enviados a un log destinado a ello,
+aunque el script avisará por pantalla si el usuario no existe.
+
+#!/bin/bash
+
+# Función para mostrar información del usuario
+mostrar_info_usuario() {
+    local usuario=$1
+    # Obtiene información del usuario
+    info=$(getent passwd "$usuario")
+    
+    if [ -z "$info" ]; then
+        echo "El usuario $usuario no existe."
+        echo "Error: Usuario no encontrado." >> error_log.txt
+    else
+        IFS=: read -r nombre uid gid dir <<< "$info"
+        echo "Nombre de usuario: $nombre"
+        echo "UID: $uid"
+        echo "GID: $gid"
+        echo "Directorio de trabajo: $dir"
+    fi
+}
+
+# Bucle para permitir introducir varios usuarios
+while true; do
+    echo "Introduce el nombre de un usuario:"
+    read usuario
+    mostrar_info_usuario "$usuario"
+
+    echo "¿Quieres introducir otro usuario? (s/n)"
+    read continuar
+    if [[ "$continuar" != "s" ]]; then
+        break
+    fi
+done
+
+Ejercicio 9.
+Hacer un script llamado copia_scripts.sh, que haga un copiado de los scripts (archivos
+con extensión sh) creados en la carpeta pasada como parámetro, deben ser
+empaquetados con el comando tar y el nombre del archivo debe tener el siguiente
+formato: “copia_scripts_ddmmaaaa.tar” siendo dd el día, mm el mes y aaaa el año en el
+que se produce la copia.
+#!/bin/bash
+
+# Verifica que se ha pasado un directorio como argumento
+if [ "$#" -ne 1 ]; then
+    echo "Uso: $0 <directorio>"
+    exit 1
+fi
+
+directorio=$1
+
+# Verifica si el argumento es un directorio
+if [ ! -d "$directorio" ]; then
+    echo "$directorio no es un directorio válido."
+    exit 1
+fi
+
+# Obtiene la fecha actual
+fecha=$(date +"%d%m%Y")
+
+# Crea el nombre del archivo tar
+nombre_archivo="copia_scripts_$fecha.tar"
+
+# Busca y empaqueta los scripts .sh
+tar -cvf "$nombre_archivo" "$directorio"/*.sh 2> error_log.txt
+
+# Muestra el resultado
+if [ $? -eq 0 ]; then
+    echo "Copia realizada con éxito: $nombre_archivo"
+else
+    echo "Error al realizar la copia. Consulta error_log.txt para más detalles."
+fi
