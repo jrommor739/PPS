@@ -1,0 +1,192 @@
+#!/bin/bash
+
+
+# Función para realizar la copia de seguridad
+copia() {
+    # Obtenemos la fecha y hora actual
+    fecha=$(date +"%d%m%Y_%H-%M-%S")
+    
+    # Creamos el archivo zip de la copia de seguridad
+    zip "copia_usuarios_$fecha.zip" usuarios.csv
+    
+    # Log de la operación
+    echo "COPIA REALIZADA el $fecha" >> log.log
+    
+    # Mantenemos solo las 2 copias más recientes
+    ficheros=$(ls -t copia_usuarios*.zip)
+    count=0
+    for f in $ficheros; do
+        count=$((count+1))
+        if [ $count -gt 2 ]; then
+            rm "$f"  # Eliminamos los archivos más antiguos
+        fi
+    done
+}
+
+# Función para generar el nombre de usuario basado en los datos proporcionados
+generauser() {
+    nombre=$(echo "$1" | tr '[:upper:]' '[:lower:]' | cut -c 1)
+    apellido1=$(echo "$2" | tr '[:upper:]' '[:lower:]' | cut -c 1-3)
+    apellido2=$(echo "$3" | tr '[:upper:]' '[:lower:]' | cut -c 1-3)
+    dni=$(echo "$4" | cut -c 7-9)
+    echo "${nombre}${apellido1}${apellido2}${dni}"
+}
+
+# Función para comprobar si un usuario ya existe
+existe() {
+    # Busca el nombre de usuario en el archivo usuarios.csv
+    if grep -q "$1" usuarios.csv; then
+        return 0  # El usuario existe
+    else
+        return 1  # El usuario no existe
+    fi
+}
+
+# Función para dar de alta un nuevo usuario
+alta() {
+    # Pedir datos al usuario
+    echo "Introduzca el nombre:"
+    read nombre
+    echo "Introduzca el primer apellido:"
+    read apellido1
+    echo "Introduzca el segundo apellido:"
+    read apellido2
+    echo "Introduzca el DNI (8 dígitos y letra):"
+    read dni
+    
+    # Comprobamos el formato del DNI
+    if [[ ! "$dni" =~ ^[0-9]{8}[A-Za-z]$ ]]; then
+        echo "DNI no válido."
+        return
+    fi
+    
+    # Generar nombre de usuario
+    username=$(generauser "$nombre" "$apellido1" "$apellido2" "$dni")
+    
+    # Verificar que el nombre de usuario no exista ya
+    if existe "$username"; then
+        echo "El usuario ya existe."
+    else
+        # Añadir al archivo usuarios.csv
+        echo "$nombre:$apellido1:$apellido2:$dni:$username" >> usuarios.csv
+        # Registrar en el log
+        echo "INSERTADO $nombre:$apellido1:$apellido2:$dni:$username el $(date)" >> log.log
+    fi
+}
+
+# Función para dar de baja un usuario
+baja() {
+    # Pedir el nombre de usuario
+    echo "Introduzca el nombre de usuario a eliminar:"
+    read username
+    
+    # Verificar si el usuario existe
+    if existe "$username"; then
+        # Eliminar el usuario
+        grep -v "$username" usuarios.csv > usuarios.tmp
+        mv usuarios.tmp usuarios.csv
+        # Registrar en el log
+        echo "BORRADO $username el $(date)" >> log.log
+    else
+        echo "El usuario no existe."
+    fi
+}
+
+# Función para mostrar los usuarios
+mostrar_usuarios() {
+    echo "Usuarios registrados en el sistema:"
+    
+    # Mostrar usuarios ordenados por nombre de usuario
+    sort -t ':' -k5 usuarios.csv
+}
+
+# Función para mostrar el log del sistema
+mostrar_log() {
+    cat log.log
+}
+
+# Función para realizar el login
+login() {
+    # Intentos de acceso
+    intentos=0
+    max_intentos=3
+    
+    # Si el archivo de usuarios no existe o está vacío, se fuerza el login como admin
+    if [ ! -f usuarios.csv ] || [ ! -s usuarios.csv ]; then
+        if [ "$1" != "-root" ]; then
+            echo "No hay usuarios en el sistema. Utilice la opción -root para acceder como admin."
+            exit 1
+        fi
+    fi
+    
+    # Bucle de autenticación
+    while [ $intentos -lt $max_intentos ]; do
+        echo "Introduzca su nombre de usuario:"
+        read username
+        # Comprobar si el usuario existe en el archivo
+        if [ "$username" == "admin" ] || existe "$username"; then
+            echo "Acceso concedido."
+            return
+        else
+            echo "Usuario no encontrado."
+        fi
+        intentos=$((intentos + 1))
+    done
+    
+    # Si se superan los intentos
+    echo "Demasiados intentos fallidos. Saliendo..."
+    exit 1
+}
+
+# Función principal del script
+main() {
+    # Comprobamos si el archivo de usuarios existe
+    if [ ! -f usuarios.csv ]; then
+        touch usuarios.csv
+    fi
+    
+    # Comprobamos el login
+    login "$1"
+    
+    # Menú de opciones
+    while true; do
+
+	echo "Seleccione una opción:"
+	echo "1. EJECUTAR COPIA DE SEGURIDAD"
+	echo "2. DAR DE ALTA USUARIO"
+	echo "3. DAR DE BAJA AL USUARIO"
+	echo "4. MOSTRAR USUARIOS"
+	echo "5. MOSTRAR LOG DEL SISTEMA"
+	echo "6. SALIR"
+    
+        read -p "Selecciona una opción: " opcion
+        
+        case $opcion in
+            1)
+                copia
+                ;;
+            2)
+                alta
+                ;;
+            3)
+                baja
+                ;;
+            4)
+                mostrar_usuarios
+                ;;
+            5)
+                mostrar_log
+                ;;
+            6)
+                echo "Saliendo del sistema."
+                exit 0
+                ;;
+            *)
+                echo "Opción no válida. Intente de nuevo."
+                ;;
+        esac
+    done
+}
+
+# Ejecución del script
+main "$1"
